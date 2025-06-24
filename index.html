@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Super Horror 3D Game</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: black; }
+    canvas { display: block; }
+    #loading { position: absolute; color: white; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: Arial; }
+  </style>
+</head>
+<body>
+  <div id="loading">Loading Horror...</div>
+
+  <!-- Three.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r148/three.min.js"></script>
+  <!-- Controls (after Three.js) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.148.0/examples/js/controls/PointerLockControls.js"></script>
+
+  <!-- Now your code -->
+  <script>
+    // Scene and fog
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x000000, 5, 20);
+
+    // Camera
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+    document.getElementById('loading').remove();
+
+    // Horror background sound
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
+    const sound = new THREE.Audio(listener);
+    const audioLoader = new THREE.AudioLoader();
+    audioLoader.load('https://cdn.pixabay.com/download/audio/2021/09/08/audio_e4dc221aa1.mp3?filename=horror-background-109009.mp3', buffer => {
+      sound.setBuffer(buffer);
+      sound.setLoop(true);
+      sound.setVolume(0.5);
+      sound.play();
+    });
+
+    // Controls
+    const controls = new THREE.PointerLockControls(camera, document.body);
+    document.body.addEventListener('click', () => controls.lock());
+    scene.add(controls.getObject());
+
+    // Lighting
+    const light = new THREE.PointLight(0xff0000, 2, 10);
+    light.position.set(0, 2, 0);
+    scene.add(light);
+    const ambient = new THREE.AmbientLight(0x404040);
+    scene.add(ambient);
+
+    // Ground and creepy cube
+    const loader = new THREE.TextureLoader();
+    const groundTex = loader.load('https://i.imgur.com/1xWQd2h.jpg');
+    groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
+    groundTex.repeat.set(20, 20);
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(100, 100),
+      new THREE.MeshStandardMaterial({ map: groundTex })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+
+    const wallTex = loader.load('https://i.imgur.com/23tRrVm.jpg');
+    const cube = new THREE.Mesh(
+      new THREE.BoxGeometry(2, 2, 2),
+      new THREE.MeshStandardMaterial({ map: wallTex })
+    );
+    cube.position.set(0, 1, -5);
+    scene.add(cube);
+
+    // Animate
+    function animate() {
+      requestAnimationFrame(animate);
+      cube.rotation.y += 0.005;
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
